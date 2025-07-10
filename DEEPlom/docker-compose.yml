@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  mysql_db:
+    container_name: db
+    image: mysql:latest
+    restart: always
+    ports:
+      - "3307:3306"  # Порт для доступа с хоста
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: deeplom
+      MYSQL_USER: zifrkoks
+      MYSQL_PASSWORD: 12345678Qwe
+    volumes:
+      - ./dbdata:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=root"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  # phpmyadmin:
+  #   image: phpmyadmin/phpmyadmin:latest
+  #   restart: always
+  #   ports:
+  #   - "8087:80"
+  #   environment:
+  #     PMA_HOST: mysql_db
+  #     MYSQL_ROOT_PASSWORD: root
+  #   networks:
+  #    - app-network
+  app:
+    container_name: backend
+    build: ./server
+    ports:
+      - "8013:8000"
+    depends_on:
+      mysql_db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=mysql_db  # Используем имя сервиса
+      - DB_PORT=3306      # Внутренний порт контейнера
+      - DB_USER=zifrkoks
+      - DB_PASS=12345678Qwe
+      - DB=deeplom
+      - JWT_SECRET=test
+      - TOKEN_EXPIRES=240
+      - MODEL_SERVICE=app_ml:8016
+      - EMAIL_NAME=q92552189@gmail.com
+      - EMAIL_PASS=rlxo apue iphc ekvv
+    networks:
+      - app-network
+    
+volumes:
+  logs: { }
+  models: { }
+  dataset: { }
+  prometheus_data: { }
+  grafana_data: { }
+  dbdata:  # Переименовано в соответствии с вашим volume
+
+networks:
+  app-network:
+    driver: bridge
